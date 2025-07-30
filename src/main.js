@@ -30,7 +30,9 @@ function calculateBonusByProfit(index, total, seller) {
  * @returns {Array}
  */
 function analyzeSalesData(data, options) {
-    // Ваш оригинальный код без изменений
+    if (!options.calculateRevenue || !options.calculateBonus) {
+        throw new Error();
+    }
     const calculateRevenue = ({discount, sale_price, quantity}) => {
         let sizeWithDiscount = 1 - (discount/100);
         return sizeWithDiscount * sale_price * quantity;
