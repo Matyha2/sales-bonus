@@ -6,8 +6,7 @@
  */
 function calculateSimpleRevenue(purchase, _product) {
     const discountFactor = 1 - purchase.discount / 100;
-    const revenue = purchase.sale_price * purchase.quantity * discountFactor;
-    return parseFloat(revenue.toFixed(2));
+    return purchase.sale_price * purchase.quantity * discountFactor;
 }
 
 /**
@@ -70,13 +69,26 @@ function analyzeSalesData(data, options) {
         return result;
     }, {});
 
-    // Первый проход: расчет выручки и количества
+    // Единый проход для расчета всех показателей
     data.purchase_records.forEach(record => {
         const seller = sellerIndex[record.seller_id];
         seller.sales_count += 1;
-        seller.revenue = parseFloat((seller.revenue + record.total_amount).toFixed(2));
-
+        
         record.items.forEach(item => {
+            const product = productIndex[item.sku];
+            if (!product) return;
+            
+            // Рассчитываем выручку с учетом скидки
+            const itemRevenue = calculateRevenue(item, product);
+            // Рассчитываем себестоимость
+            const itemCost = product.purchase_price * item.quantity;
+            // Рассчитываем прибыль
+            const itemProfit = itemRevenue - itemCost;
+            
+            seller.revenue += itemRevenue;
+            seller.profit += itemProfit;
+            
+            // Учет проданных товаров
             if (!seller.products_sold[item.sku]) {
                 seller.products_sold[item.sku] = 0;
             }
@@ -84,19 +96,9 @@ function analyzeSalesData(data, options) {
         });
     });
 
-    // Второй проход: точный расчет прибыли
-    data.purchase_records.forEach(record => {
-        const seller = sellerIndex[record.seller_id];
-        record.items.forEach(item => {
-            const product = productIndex[item.sku];
-            const revenue = calculateRevenue(item, product);
-            const cost = product.purchase_price * item.quantity;
-            seller.profit += revenue - cost;
-        });
-    });
-
-    // Округление прибыли после всех расчетов
+    // Округление показателей после всех расчетов
     sellerStats.forEach(seller => {
+        seller.revenue = parseFloat(seller.revenue.toFixed(2));
         seller.profit = parseFloat(seller.profit.toFixed(2));
     });
 
