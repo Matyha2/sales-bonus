@@ -15,10 +15,7 @@
     <script>
         console.log(data);
 
-        const report = analyzeSalesData(data, {
-            calculateRevenue: calculateSimpleRevenue,
-            calculateBonus: calculateBonusByProfit
-        });
+        
         const calculateRevenue =({discount,sale_price,quantity})=> {
             let sizeWithDiscount = 1 - (discount/100)
             let pricesPerProduct = sizeWithDiscount*sale_price*quantity
@@ -30,6 +27,7 @@
             let profit = pricesPerProduct - purchase_price*quantity
             return profit
         }
+        const report = analyzeSalesData(data);
         function analyzeSalesData(data) {
             const sellersStats = data.sellers.map(seller => ({
                 seller_id: seller.id,
