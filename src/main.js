@@ -25,7 +25,7 @@ function calculateSimpleRevenue(purchase, _product) {
  */
 function calculateBonusByProfit(index, total, seller) {
     let bonus;
-    const profit = parseFloat(seller.profit.toFixed(2)); // Обеспечиваем точность
+    const profit = seller.profit; // Используем уже округленное значение
     
     if (index === 0) {
         bonus = profit * 0.15;
@@ -93,17 +93,23 @@ function analyzeSalesData(data, options) {
 
         record.items.forEach(item => {
             const product = productIndex[item.sku];
-            const cost = parseFloat((product.purchase_price * item.quantity).toFixed(2));
             const revenue = calculateRevenue(item, product);
-            const profit = parseFloat((revenue - cost).toFixed(2));
+            const cost = product.purchase_price * item.quantity;
+            const profit = revenue - cost;
 
-            seller.profit = parseFloat((seller.profit + profit).toFixed(2));
+            // Накопление без промежуточного округления
+            seller.profit += profit;
 
             if (!seller.products_sold[item.sku]) {
                 seller.products_sold[item.sku] = 0;
             }
             seller.products_sold[item.sku] += item.quantity;
         });
+    });
+
+    // Округление прибыли только после всех расчетов
+    sellerStats.forEach(seller => {
+        seller.profit = parseFloat(seller.profit.toFixed(2));
     });
 
     // Сортировка продавцов по прибыли
