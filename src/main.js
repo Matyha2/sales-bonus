@@ -90,8 +90,9 @@ function analyzeSalesData(data, options) {
         });
     });
 
-    sellersStats.sort((a, b) => b.profit - a.profit);
 
+    sellersStats.sort((a, b) => b.profit - a.profit);
+    
     sellersStats.forEach((seller, index) => {
         if (options?.calculateBonus) {
             seller.bonus = options.calculateBonus(index, sellersStats.length, seller);
@@ -113,7 +114,10 @@ function analyzeSalesData(data, options) {
         seller.top_products = topProductsArray
             .sort((a, b) => b.quantity - a.quantity)
             .slice(0, 10);
+        
+  
     });
+
 
     return sellersStats.map(seller => ({
         seller_id: seller.seller_id,
