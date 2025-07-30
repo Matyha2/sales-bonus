@@ -7,7 +7,8 @@
 function calculateSimpleRevenue(purchase, _product) {
     const discountFactor = 1 - purchase.discount / 100;
     const revenue = purchase.sale_price * purchase.quantity * discountFactor;
-    return Math.round(revenue * 100) / 100; // Более точное округление
+    // Округляем до копеек с помощью toFixed(2) и преобразуем обратно в число
+    return parseFloat(revenue.toFixed(2));
 }
 
 /**
@@ -24,16 +25,18 @@ function calculateSimpleRevenue(purchase, _product) {
  */
 function calculateBonusByProfit(index, total, seller) {
     let bonus;
+    const profit = parseFloat(seller.profit.toFixed(2)); // Обеспечиваем точность
+    
     if (index === 0) {
-        bonus = seller.profit * 0.15;
+        bonus = profit * 0.15;
     } else if (index === 1 || index === 2) {
-        bonus = seller.profit * 0.10;
+        bonus = profit * 0.10;
     } else if (index === total - 1) {
         bonus = 0;
     } else {
-        bonus = seller.profit * 0.05;
+        bonus = profit * 0.05;
     }
-    return Math.round(bonus * 100) / 100; // Более точное округление
+    return parseFloat(bonus.toFixed(2));
 }
 
 /**
@@ -86,15 +89,15 @@ function analyzeSalesData(data, options) {
     data.purchase_records.forEach(record => {
         const seller = sellerIndex[record.seller_id];
         seller.sales_count += 1;
-        seller.revenue = Math.round((seller.revenue + record.total_amount) * 100) / 100;
+        seller.revenue = parseFloat((seller.revenue + record.total_amount).toFixed(2));
 
         record.items.forEach(item => {
             const product = productIndex[item.sku];
-            const cost = Math.round(product.purchase_price * item.quantity * 100) / 100;
+            const cost = parseFloat((product.purchase_price * item.quantity).toFixed(2));
             const revenue = calculateRevenue(item, product);
-            const profit = Math.round((revenue - cost) * 100) / 100;
+            const profit = parseFloat((revenue - cost).toFixed(2));
 
-            seller.profit = Math.round((seller.profit + profit) * 100) / 100;
+            seller.profit = parseFloat((seller.profit + profit).toFixed(2));
 
             if (!seller.products_sold[item.sku]) {
                 seller.products_sold[item.sku] = 0;
