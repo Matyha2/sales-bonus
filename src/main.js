@@ -30,9 +30,11 @@ function calculateBonusByProfit(index, total, seller) {
  * @returns {Array}
  */
 function analyzeSalesData(data, options) {
-    if (!options.calculateRevenue || !options.calculateBonus) {
-        throw new Error();
+    if (!data || !Array.isArray(data.sellers) || !Array.isArray(data.products) || 
+        !Array.isArray(data.purchase_records) || data.sellers.length === 0) {
+        return [];  
     }
+
     const calculateRevenue = ({discount, sale_price, quantity}) => {
         let sizeWithDiscount = 1 - (discount/100);
         return sizeWithDiscount * sale_price * quantity;
