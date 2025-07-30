@@ -53,8 +53,8 @@ function analyzeSalesData(data, options) {
     const sellerStats = data.sellers.map(seller => ({
         id: seller.id,
         name: `${seller.first_name} ${seller.last_name}`,
-        revenue: 0,
-        profit: 0,
+        revenue: 0,   // в копейках
+        profit: 0,    // в копейках
         sales_count: 0,
         products_sold: {}
     }));
@@ -69,7 +69,7 @@ function analyzeSalesData(data, options) {
         return result;
     }, {});
 
-    // Единый проход для расчета всех показателей
+    // Единый проход для расчета всех показателей в копейках
     data.purchase_records.forEach(record => {
         const seller = sellerIndex[record.seller_id];
         seller.sales_count += 1;
@@ -78,16 +78,19 @@ function analyzeSalesData(data, options) {
             const product = productIndex[item.sku];
             if (!product) return;
             
-            // Рассчитываем выручку с учетом скидки
+            // Рассчитываем выручку с учетом скидки и переводим в копейки
             const itemRevenue = calculateRevenue(item, product);
-            // Рассчитываем себестоимость
-            const itemCost = product.purchase_price * item.quantity;
-            // Рассчитываем прибыль
-            const itemProfit = itemRevenue - itemCost;
+            const itemRevenueCents = Math.round(itemRevenue * 100);
             
-            // Суммируем с повышенной точностью
-            seller.revenue += itemRevenue;
-            seller.profit += itemProfit;
+            // Рассчитываем себестоимость в копейках
+            const itemCostCents = Math.round(product.purchase_price * item.quantity * 100);
+            
+            // Прибыль в копейках
+            const itemProfitCents = itemRevenueCents - itemCostCents;
+            
+            // Суммируем целочисленные значения
+            seller.revenue += itemRevenueCents;
+            seller.profit += itemProfitCents;
             
             // Учет проданных товаров
             if (!seller.products_sold[item.sku]) {
@@ -97,10 +100,10 @@ function analyzeSalesData(data, options) {
         });
     });
 
-    // Точное округление показателей после всех расчетов
+    // Переводим копейки в рубли
     sellerStats.forEach(seller => {
-        seller.revenue = Math.round(seller.revenue * 100 + Number.EPSILON) / 100;
-        seller.profit = Math.round(seller.profit * 100 + Number.EPSILON) / 100;
+        seller.revenue = Math.round(seller.revenue) / 100;
+        seller.profit = Math.round(seller.profit) / 100;
     });
 
     // Сортировка по прибыли
