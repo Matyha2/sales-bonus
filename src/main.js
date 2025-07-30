@@ -17,19 +17,6 @@ function calculateSimpleRevenue(purchase, _product) {
  * @returns {number}
  */
 function analyzeSalesData(data, options) {
-    if (!options || typeof options.calculateRevenue !== 'function' || typeof options.calculateBonus !== 'function') {
-        throw new Error("Missing required options: calculateRevenue and calculateBonus must be functions");
-    }
-    if (!data) throw new Error("Некорректные входные данные");
-    if (!Array.isArray(data.sellers) || data.sellers.length === 0) {
-        throw new Error("Массив sellers пуст или не является массивом");
-    }
-    if (!Array.isArray(data.products) || data.products.length === 0) {
-        throw new Error("Массив products пуст или не является массивом");
-    }
-    if (!Array.isArray(data.purchase_records) || data.purchase_records.length === 0) {
-        throw new Error("Массив purchase_records пуст или не является массивом");
-    }
 
     const calculateRevenue = options.calculateRevenue;
     const calculateBonus = options.calculateBonus;
