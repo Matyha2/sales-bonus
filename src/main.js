@@ -127,4 +127,12 @@ function analyzeSalesData(data, options) {
 }
 
 /* Экспорт функций для тестов и использования */
-export { calculateSimpleRevenue, calculateBonusByProfit, analyzeSalesData };
+function mainFunc() {
+  return {
+    calculateSimpleRevenue,
+    calculateBonusByProfit,
+    analyzeSalesData
+  };
+}
+
+module.exports = mainFunc; 
