@@ -6,9 +6,7 @@
  */
 function calculateSimpleRevenue(purchase, _product) {
     const discountFactor = 1 - purchase.discount / 100;
-    const revenue = purchase.sale_price * purchase.quantity * discountFactor;
-    // Возвращаем округлённое значение до 2 знаков
-    return Math.round(revenue * 100) / 100;
+    return purchase.sale_price * purchase.quantity * discountFactor;
 }
 
 /**
@@ -31,7 +29,6 @@ function calculateBonusByProfit(index, total, seller) {
     } else {
         bonus = profit * 0.05;
     }
-    // Округляем бонусы до 2 знаков
     return Math.round(bonus * 100) / 100;
 }
 
@@ -81,14 +78,14 @@ function analyzeSalesData(data, options) {
             const product = productIndex[item.sku];
             if (!product) return;
             
-            // Рассчитываем выручку с учетом скидки (уже округлённую)
+            // Рассчитываем выручку с учетом скидки
             const itemRevenue = calculateRevenue(item, product);
             // Рассчитываем себестоимость
             const itemCost = product.purchase_price * item.quantity;
             // Рассчитываем прибыль
             const itemProfit = itemRevenue - itemCost;
             
-            // Суммируем без промежуточного округления
+            // Суммируем с повышенной точностью
             seller.revenue += itemRevenue;
             seller.profit += itemProfit;
             
@@ -100,10 +97,10 @@ function analyzeSalesData(data, options) {
         });
     });
 
-    // Округление показателей после всех расчетов
+    // Точное округление показателей после всех расчетов
     sellerStats.forEach(seller => {
-        seller.revenue = Math.round(seller.revenue * 100) / 100;
-        seller.profit = Math.round(seller.profit * 100) / 100;
+        seller.revenue = Math.round(seller.revenue * 100 + Number.EPSILON) / 100;
+        seller.profit = Math.round(seller.profit * 100 + Number.EPSILON) / 100;
     });
 
     // Сортировка по прибыли
@@ -111,7 +108,6 @@ function analyzeSalesData(data, options) {
 
     // Расчет бонусов и топ-продуктов
     sellerStats.forEach((seller, index) => {
-        // Бонусы рассчитываются с округлением внутри функции
         seller.bonus = calculateBonus(index, sellerStats.length, seller);
         seller.top_products = Object.entries(seller.products_sold)
             .map(([sku, quantity]) => ({ sku, quantity }))
