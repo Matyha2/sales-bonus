@@ -90,8 +90,13 @@ function analyzeSalesData(data, options) {
         });
     });
 
+    // Отладка перед сортировкой
+    console.log('До сортировки:', sellersStats);
 
     sellersStats.sort((a, b) => b.profit - a.profit);
+
+    // Отладка после сортировки
+    console.log('После сортировки:', sellersStats);
 
     sellersStats.forEach((seller, index) => {
         if (options?.calculateBonus) {
@@ -111,23 +116,28 @@ function analyzeSalesData(data, options) {
             });
         }
 
+        // Сортировка топ товаров по количеству
         seller.top_products = topProductsArray
-            .sort((a, b) => b.quantity - a.quantity)
-            .slice(0, 10);
+            .sort((a,b)=>b.quantity - a.quantity)
+            .slice(0,10);
+
+        // Округление итоговых значений
         seller.revenue = +seller.revenue.toFixed(2);
         seller.profit = +seller.profit.toFixed(2);
-        seller.bonus = +seller.bonus.toFixed(2);
-  
+        seller.bonus= +seller.bonus.toFixed(2);
+
+        // Отладка каждого продавца
+        console.log(`Продавец ${seller.name}: revenue=${seller.revenue}, profit=${seller.profit}, bonus=${seller.bonus}`);
     });
 
-
+    // Итоговые данные
     return sellersStats.map(seller => ({
-        seller_id: seller.seller_id,
-        name: seller.name,
-        revenue: +seller.revenue.toFixed(2),
-        profit: +seller.profit.toFixed(2),
-        sales_count: seller.sales_count,
-        top_products: seller.top_products,
-        bonus: +seller.bonus.toFixed(2)
+      seller_id: seller.seller_id,
+      name: seller.name,
+      revenue: +seller.revenue.toFixed(2),
+      profit: +seller.profit.toFixed(2),
+      sales_count: seller.sales_count,
+      top_products: seller.top_products,
+      bonus: +seller.bonus.toFixed(2)
     }));
 }
