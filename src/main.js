@@ -124,10 +124,10 @@ function analyzeSalesData(data, options) {
     return sellersStats.map(seller => ({
         seller_id: seller.seller_id,
         name: seller.name,
-        revenue: +seller.revenue,
-        profit: +seller.profit,
+        revenue: +seller.revenue.toFixed(2),
+        profit: +seller.profit.toFixed(2),
         sales_count: seller.sales_count,
         top_products: seller.top_products,
-        bonus: +seller.bonus
+        bonus: +seller.bonus.toFixed(2)
     }));
 }
