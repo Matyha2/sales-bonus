@@ -45,15 +45,17 @@ function analyzeSalesData(data, options) {
     }
 
     const calculateRevenue = ({discount, sale_price, quantity}) => {
-        let sizeWithDiscount = 1 - (discount/100);
-        return sizeWithDiscount * sale_price * quantity;
-    };
+    const discountedPrice = sale_price * (1 - discount/100);
+    return +(discountedPrice * quantity).toFixed(2);
+};
+
 
     const calculateProfit = ({discount, sale_price, quantity, purchase_price}) => {
-        let sizeWithDiscount = 1 - (discount/100);
-        let pricesPerProduct = sizeWithDiscount * sale_price * quantity;
-        return pricesPerProduct - purchase_price * quantity;
-    };
+    const discountedPrice = sale_price * (1 - discount/100);
+    const revenue = +(discountedPrice * quantity).toFixed(2);
+    const cost = +(purchase_price * quantity).toFixed(2);
+    return +(revenue - cost).toFixed(2);
+};
 
     const sellersStats = data.sellers.map(seller => ({
         seller_id: seller.id,
@@ -121,9 +123,7 @@ function analyzeSalesData(data, options) {
             .sort((a,b)=>b.quantity - a.quantity)
             .slice(0,10);
 
-       seller.revenue = parseFloat(seller.revenue);
-seller.profit = parseFloat(seller.profit);
-seller.bonus = parseFloat(seller.bonus);
+    
         
     });
 
