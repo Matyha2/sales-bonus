@@ -121,7 +121,9 @@ function analyzeSalesData(data, options) {
             .sort((a,b)=>b.quantity - a.quantity)
             .slice(0,10);
 
-        // Округление итоговых значений
+       seller.revenue = parseFloat(seller.revenue);
+seller.profit = parseFloat(seller.profit);
+seller.bonus = parseFloat(seller.bonus);
         
     });
 
