@@ -14,83 +14,10 @@
     <script src="src/main.js"></script>
     <script>
         console.log(data);
-
-        
-        const calculateRevenue =({discount,sale_price,quantity})=> {
-            let sizeWithDiscount = 1 - (discount/100)
-            let pricesPerProduct = sizeWithDiscount*sale_price*quantity
-            return pricesPerProduct
-        }
-        const calculateProfit =({discount,sale_price,quantity,purchase_price})=> {
-            let sizeWithDiscount = 1 - (discount/100)
-            let pricesPerProduct = sizeWithDiscount*sale_price*quantity
-            let profit = pricesPerProduct - purchase_price*quantity
-            return profit
-        }
-        const report = analyzeSalesData(data);
-        function analyzeSalesData(data) {
-            const sellersStats = data.sellers.map(seller => ({
-                seller_id: seller.id,
-                name: `${seller.first_name} ${seller.last_name}`,
-                revenue: 0,
-                profit: 0,
-                sales_count: 0,
-                products_sold: {}
-            }));
-
-
-    data.purchase_records.forEach(sale => {
-        const seller = sellersStats.find(s => s.seller_id === sale.seller_id);
-        seller.sales_count++;
-
-        sale.items.forEach(item => {
-            const product = data.products.find(p => p.sku === item.sku);
-            
-            const revenue = calculateRevenue(item);
-            const profit = calculateProfit({...item, purchase_price: product.purchase_price});
-            
-            seller.revenue += revenue;
-            seller.profit += profit;
-            
-            if (!seller.products_sold[item.sku]) {
-                seller.products_sold[item.sku] = 0;
-            }
-
-            seller.products_sold[item.sku] += item.quantity;
-            });
-    });
-
-    sellersStats.sort((a, b) => b.profit - a.profit);
-
-    sellersStats.forEach((seller, index) => {
-        if (index === 0) seller.bonus = seller.profit * 0.15;
-        else if (index <= 2) seller.bonus = seller.profit * 0.10;
-        else if (index === sellersStats.length - 1) seller.bonus = 0;
-        else seller.bonus = seller.profit * 0.05;
-        
-    const topProductsArray = [];
-    for (const sku in seller.products_sold) {
-        topProductsArray.push({
-        sku: sku,
-        quantity: seller.products_sold[sku]
+        const report = analyzeSalesData(data, {
+            calculateRevenue: calculateSimpleRevenue,
+            calculateBonus: calculateBonusByProfit
         });
-    }
-
-        seller.top_products = topProductsArray
-            .sort((a, b) => b.quantity - a.quantity)
-            .slice(0, 10);
-        });
-
-        return sellersStats.map(seller => ({
-            seller_id: seller.seller_id,
-            name: seller.name,
-            revenue: +seller.revenue.toFixed(2),
-            profit: +seller.profit.toFixed(2),
-            sales_count: seller.sales_count,
-            top_products: seller.top_products,
-            bonus: +seller.bonus.toFixed(2)
-        }));
-}
         if (console.table) console.table(report);
         else console.log(report);
     </script>
