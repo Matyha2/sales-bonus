@@ -30,9 +30,13 @@ function calculateBonusByProfit(index, total, seller) {
  * @returns {Array}
  */
 function analyzeSalesData(data, options) {
-    if (!data || !Array.isArray(data.sellers) || !Array.isArray(data.products) || 
-        !Array.isArray(data.purchase_records) || data.sellers.length === 0) {
-        return [];  
+     if (!options.calculateRevenue || !options.calculateBonus) {
+        throw new Error("Missing required options");
+    }
+
+    // Проверка данных (3 строки)
+    if (!data || !data.sellers || !data.products || !data.purchase_records) {
+        throw new Error("Invalid data structure");
     }
 
     const calculateRevenue = ({discount, sale_price, quantity}) => {
