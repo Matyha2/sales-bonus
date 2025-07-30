@@ -92,7 +92,7 @@ function analyzeSalesData(data, options) {
 
 
     sellersStats.sort((a, b) => b.profit - a.profit);
-    
+
     sellersStats.forEach((seller, index) => {
         if (options?.calculateBonus) {
             seller.bonus = options.calculateBonus(index, sellersStats.length, seller);
@@ -114,7 +114,9 @@ function analyzeSalesData(data, options) {
         seller.top_products = topProductsArray
             .sort((a, b) => b.quantity - a.quantity)
             .slice(0, 10);
-        
+        seller.revenue = +seller.revenue.toFixed(2);
+        seller.profit = +seller.profit.toFixed(2);
+        seller.bonus = +seller.bonus.toFixed(2);
   
     });
 
@@ -122,10 +124,10 @@ function analyzeSalesData(data, options) {
     return sellersStats.map(seller => ({
         seller_id: seller.seller_id,
         name: seller.name,
-        revenue: +seller.revenue.toFixed(2),
-        profit: +seller.profit.toFixed(2),
+        revenue: +seller.revenue,
+        profit: +seller.profit,
         sales_count: seller.sales_count,
         top_products: seller.top_products,
-        bonus: +seller.bonus.toFixed(2)
+        bonus: +seller.bonus
     }));
 }
