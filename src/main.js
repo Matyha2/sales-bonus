@@ -1,34 +1,3 @@
-/**
- * Функция для расчета выручки
- * @param purchase запись о покупке (item)
- * @param _product карточка товара (не используется)
- * @returns {number}
- */
-function calculateSimpleRevenue(purchase, _product) {
-    const sizeWithDiscount = 1 - purchase.discount / 100;
-    return sizeWithDiscount * purchase.sale_price * purchase.quantity;
-}
-
-/**
- * Функция для расчета бонусов
- * @param index порядковый номер
- * @param total общее число продавцов
- * @param seller карточка продавца
- * @returns {number}
- */
-function calculateBonusByProfit(index, total, seller) {
-    if (index === 0) return seller.profit * 0.15;
-    if (index <= 2) return seller.profit * 0.10;
-    if (index === total - 1) return 0;
-    return seller.profit * 0.05;
-}
-
-/**
- * Анализ данных продаж
- * @param data входные данные
- * @param options настройки
- * @returns {Array}
- */
 function analyzeSalesData(data, options) {
     if (!options || !options.calculateRevenue || !options.calculateBonus) {
         throw new Error("Missing required options");
@@ -45,17 +14,16 @@ function analyzeSalesData(data, options) {
     }
 
     const calculateRevenue = ({discount, sale_price, quantity}) => {
-    const discountedPrice = sale_price * (1 - discount/100);
-    return +(discountedPrice * quantity).toFixed(2);
-};
-
+        const discountedPrice = sale_price * (1 - discount/100);
+        return discountedPrice * quantity; // Don't round here
+    };
 
     const calculateProfit = ({discount, sale_price, quantity, purchase_price}) => {
-    const discountedPrice = sale_price * (1 - discount/100);
-    const revenue = +(discountedPrice * quantity).toFixed(2);
-    const cost = +(purchase_price * quantity).toFixed(2);
-    return +(revenue - cost).toFixed(2);
-};
+        const discountedPrice = sale_price * (1 - discount/100);
+        const revenue = discountedPrice * quantity;
+        const cost = purchase_price * quantity;
+        return revenue - cost; // Don't round here
+    };
 
     const sellersStats = data.sellers.map(seller => ({
         seller_id: seller.id,
@@ -92,22 +60,18 @@ function analyzeSalesData(data, options) {
         });
     });
 
-    // Отладка перед сортировкой
-    console.log('До сортировки:', sellersStats);
-
     sellersStats.sort((a, b) => b.profit - a.profit);
 
-    // Отладка после сортировки
-    console.log('После сортировки:', sellersStats);
-
     sellersStats.forEach((seller, index) => {
+        // Calculate bonus without intermediate rounding
         if (options?.calculateBonus) {
             seller.bonus = options.calculateBonus(index, sellersStats.length, seller);
         } else {
-            if (index === 0) seller.bonus = seller.profit * 0.15;
-            else if (index <= 2) seller.bonus = seller.profit * 0.10;
-            else if (index === sellersStats.length - 1) seller.bonus = 0;
-            else seller.bonus = seller.profit * 0.05;
+            const bonus = index === 0 ? seller.profit * 0.15 :
+                         index <= 2 ? seller.profit * 0.10 :
+                         index === sellersStats.length - 1 ? 0 :
+                         seller.profit * 0.05;
+            seller.bonus = bonus;
         }
 
         const topProductsArray = [];
@@ -118,23 +82,19 @@ function analyzeSalesData(data, options) {
             });
         }
 
-        // Сортировка топ товаров по количеству
         seller.top_products = topProductsArray
-            .sort((a,b)=>b.quantity - a.quantity)
+            .sort((a,b) => b.quantity - a.quantity)
             .slice(0,10);
-
-    
-        
     });
 
-    // Итоговые данные
+    // Apply rounding only in the final output
     return sellersStats.map(seller => ({
-  seller_id: seller.seller_id,
-  name: seller.name,
-  revenue: +seller.revenue.toFixed(2),
-  profit: +seller.profit.toFixed(2),
-  sales_count: seller.sales_count,
-  top_products: seller.top_products,
-  bonus: +seller.bonus.toFixed(2)
-}));
+        seller_id: seller.seller_id,
+        name: seller.name,
+        revenue: parseFloat(seller.revenue.toFixed(2)),
+        profit: parseFloat(seller.profit.toFixed(2)),
+        sales_count: seller.sales_count,
+        top_products: seller.top_products,
+        bonus: parseFloat(seller.bonus.toFixed(2))
+    }));
 }
