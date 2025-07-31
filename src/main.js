@@ -4,9 +4,7 @@
 function calculateSimpleRevenue(purchase, _product) {
     const { discount, sale_price, quantity } = purchase;
     const discountAmount = 1 - (discount / 100);
-    const revenue = sale_price * quantity * discountAmount;
-    // Округляем до 2 знаков после запятой для избежания ошибок точности
-    return Math.round(revenue * 100) / 100;
+    return sale_price * quantity * discountAmount;
 }
 
 /**
@@ -17,16 +15,16 @@ function calculateBonusByProfit(index, total, seller) {
     
     if (index === 0) {
         // Первое место - 15%
-        return Math.round(profit * 0.15 * 100) / 100;
+        return profit * 0.15;
     } else if (index === 1 || index === 2) {
         // Второе и третье место - 10%
-        return Math.round(profit * 0.10 * 100) / 100;
+        return profit * 0.10;
     } else if (index === total - 1) {
         // Последнее место - 0%
         return 0;
     } else {
         // Все остальные - 5%
-        return Math.round(profit * 0.05 * 100) / 100;
+        return profit * 0.05;
     }
 }
 
@@ -92,9 +90,9 @@ function analyzeSalesData(data, options) {
             // Рассчитываем прибыль
             const itemProfit = itemRevenue - itemCost;
 
-            // Обновляем статистику продавца с округлением
-            seller.revenue = Math.round((seller.revenue + itemRevenue) * 100) / 100;
-            seller.profit = Math.round((seller.profit + itemProfit) * 100) / 100;
+            // Обновляем статистику продавца БЕЗ промежуточного округления
+            seller.revenue += itemRevenue;
+            seller.profit += itemProfit;
 
             // Учитываем проданное количество товара
             if (!seller.products_sold[item.sku]) {
@@ -119,14 +117,14 @@ function analyzeSalesData(data, options) {
             .slice(0, 10);
     });
 
-    // 8. Формируем итоговый результат
+    // 8. Формируем итоговый результат с округлением ТОЛЬКО в конце
     return sellerStats.map(seller => ({
         seller_id: seller.id,
         name: seller.name,
-        revenue: Math.round(seller.revenue * 100) / 100,
-        profit: Math.round(seller.profit * 100) / 100,
+        revenue: +seller.revenue.toFixed(2),
+        profit: +seller.profit.toFixed(2),
         sales_count: seller.sales_count,
         top_products: seller.top_products,
-        bonus: Math.round(seller.bonus * 100) / 100
+        bonus: +seller.bonus.toFixed(2)
     }));
 }
