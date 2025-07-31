@@ -5,6 +5,7 @@
 function calculateSimpleRevenue(purchase, _product) {
     const { discount, sale_price, quantity } = purchase;
     const discountFactor = 1 - discount / 100;
+    // Возвращаем выручку с учётом скидки, с точностью до 10 знаков после запятой
     return parseFloat((sale_price * quantity * discountFactor).toFixed(10));
 }
 
