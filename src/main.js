@@ -2,10 +2,10 @@
  * Функция расчета выручки с учетом скидки
  * Сохраняем высокую точность, чтобы избежать накопления ошибок.
  */
-function calculateSimpleRevenue(purchase, _product) {
-    const { discount, sale_price, quantity } = purchase;
-    const discountFactor = 1 - discount / 100;
-    return seller.revenue += itemRevenue;
+function calculateSimpleRevenue(purchase, product) {
+    const discountFactor = 1 - purchase.discount / 100;
+    const itemRevenue = product.sale_price * purchase.quantity * discountFactor;
+    return itemRevenue;
 }
 
 /**
