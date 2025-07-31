@@ -1,20 +1,27 @@
+/**
+ * Функция расчета выручки с учетом скидки
+ * Сохраняем высокую точность, чтобы избежать накопления ошибок.
+ */
 function calculateSimpleRevenue(purchase, _product) {
     const { discount, sale_price, quantity } = purchase;
     const discountFactor = 1 - discount / 100;
-    return parseFloat((sale_price * quantity * discountFactor).toFixed(2));
+    return parseFloat((sale_price * quantity * discountFactor).toFixed(10));
 }
 
+/**
+ * Функция расчета бонуса по позиции
+ */
 function calculateBonusByProfit(index, total, seller) {
     const profit = seller.profit;
-    let bonus;
-    if (index === 0) bonus = profit * 0.15;
-    else if (index === 1 || index === 2) bonus = profit * 0.10;
-    else if (index === total - 1) bonus = 0;
-    else bonus = profit * 0.05;
-    
-    return parseFloat(bonus.toFixed(2));
+    if (index === 0) return profit * 0.15;
+    if (index === 1 || index === 2) return profit * 0.10;
+    if (index === total - 1) return 0;
+    return profit * 0.05;
 }
 
+/**
+ * Главная функция анализа данных продаж
+ */
 function analyzeSalesData(data, options) {
     if (
         !data ||
@@ -55,35 +62,44 @@ function analyzeSalesData(data, options) {
             const product = productIndex[item.sku];
             if (!product) return;
 
+            // Высокоточное вычисление выручки
             const itemRevenue = calculateRevenue(item, product);
-            const itemCost = parseFloat((product.purchase_price * item.quantity).toFixed(2));
-            const itemProfit = parseFloat((itemRevenue - itemCost).toFixed(2));
 
-            seller.revenue = parseFloat((seller.revenue + itemRevenue).toFixed(2));
-            seller.profit = parseFloat((seller.profit + itemProfit).toFixed(2));
+            // Корректная точность цены закупки
+            const purchasePrice = parseFloat(product.purchase_price.toFixed(10));
+            const itemCost = purchasePrice * item.quantity;
+
+            const itemProfit = itemRevenue - itemCost;
+
+            // Аккуратное накопление с точностью до 10 знаков
+            seller.revenue = parseFloat((seller.revenue + itemRevenue).toFixed(10));
+            seller.profit = parseFloat((seller.profit + itemProfit).toFixed(10));
 
             seller.products_sold[item.sku] = (seller.products_sold[item.sku] || 0) + item.quantity;
         });
     });
 
+    // Сортировка продавцов по убыванию прибыли
     sellerStats.sort((a, b) => b.profit - a.profit);
 
+    // Присваиваем бонусы и готовим топ товаров
     sellerStats.forEach((seller, index) => {
         seller.bonus = calculateBonus(index, sellerStats.length, seller);
-        
+
         seller.top_products = Object.entries(seller.products_sold)
             .map(([sku, quantity]) => ({ sku, quantity }))
             .sort((a, b) => b.quantity - a.quantity)
             .slice(0, 10);
     });
 
+    // Финальное округление до 2 знаков для вывода
     return sellerStats.map(seller => ({
         seller_id: seller.id,
         name: seller.name,
-        revenue: seller.revenue,
-        profit: seller.profit,
+        revenue: parseFloat(seller.revenue.toFixed(2)),
+        profit: parseFloat(seller.profit.toFixed(2)),
         sales_count: seller.sales_count,
         top_products: seller.top_products,
-        bonus: seller.bonus,
+        bonus: parseFloat(seller.bonus.toFixed(2)),
     }));
 }
