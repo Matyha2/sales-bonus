@@ -1,7 +1,9 @@
+javascript
 function calculateSimpleRevenue(purchase, _product) {
     const { discount, sale_price, quantity } = purchase;
     const discountAmount = 1 - (discount / 100);
-    return sale_price * quantity * discountAmount;
+    const revenue = sale_price * quantity * discountAmount;
+    return parseFloat(revenue.toFixed(2));  // Ensure consistent rounding to 2 decimal places
 }
 
 function calculateBonusByProfit(index, total, seller) {
@@ -12,7 +14,7 @@ function calculateBonusByProfit(index, total, seller) {
     else if (index === total - 1) bonus = 0;
     else bonus = profit * 0.05;
 
-    return Math.round(bonus * 100) / 100;
+    return parseFloat(bonus.toFixed(2));  // Ensure consistent rounding to 2 decimal places
 }
 
 function analyzeSalesData(data, options) {
@@ -52,15 +54,12 @@ function analyzeSalesData(data, options) {
             const product = productIndex[item.sku];
             if (!product) return;
 
-            let itemRevenue = calculateRevenue(item, product);
-            itemRevenue = Math.round(itemRevenue * 100) / 100;
-
+            const itemRevenue = calculateRevenue(item, product);
             const itemCost = product.purchase_price * item.quantity;
             const itemProfit = itemRevenue - itemCost;
-            const roundedItemProfit = Math.round(itemProfit * 100) / 100;
 
-            seller.revenue = Math.round((seller.revenue + itemRevenue) * 100) / 100;
-            seller.profit = Math.round((seller.profit + roundedItemProfit) * 100) / 100;
+            seller.revenue = parseFloat((seller.revenue + itemRevenue).toFixed(2));
+            seller.profit = parseFloat((seller.profit + itemProfit).toFixed(2));
 
             if (!seller.products_sold[item.sku]) {
                 seller.products_sold[item.sku] = 0;
@@ -83,10 +82,10 @@ function analyzeSalesData(data, options) {
     return sellerStats.map(seller => ({
         seller_id: seller.id,
         name: seller.name,
-        revenue: parseFloat(seller.revenue.toFixed(2)),
-        profit: parseFloat(seller.profit.toFixed(2)),
+        revenue: seller.revenue,
+        profit: seller.profit,
         sales_count: seller.sales_count,
         top_products: seller.top_products,
-        bonus: parseFloat(seller.bonus.toFixed(2)),
+        bonus: seller.bonus,
     }));
 }
