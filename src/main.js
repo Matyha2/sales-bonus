@@ -1,27 +1,3 @@
-/**
- * Функция расчета выручки с учетом скидки
- * Сохраняем высокую точность, чтобы избежать накопления ошибок.
- */
-function calculateSimpleRevenue(purchase, _product) {
-    const { discount, sale_price, quantity } = purchase;
-    const discountFactor = 1 - discount / 100;
-    return parseFloat((sale_price * quantity * discountFactor).toFixed(10));
-}
-
-/**
- * Функция расчета бонуса по позиции
- */
-function calculateBonusByProfit(index, total, seller) {
-    const profit = seller.profit;
-    if (index === 0) return profit * 0.15;
-    if (index === 1 || index === 2) return profit * 0.10;
-    if (index === total - 1) return 0;
-    return profit * 0.05;
-}
-
-/**
- * Главная функция анализа данных продаж
- */
 function analyzeSalesData(data, options) {
     if (
         !data ||
@@ -40,8 +16,8 @@ function analyzeSalesData(data, options) {
     const sellerStats = data.sellers.map(seller => ({
         id: seller.id,
         name: `${seller.first_name} ${seller.last_name}`,
-        revenue: 0,
-        profit: 0,
+        revenueCents: 0,  // хранить сумму в копейках
+        profitCents: 0,   // хранить сумму в копейках
         sales_count: 0,
         products_sold: {}
     }));
@@ -62,29 +38,30 @@ function analyzeSalesData(data, options) {
             const product = productIndex[item.sku];
             if (!product) return;
 
-            // Высокоточное вычисление выручки
+            // Вычисляем выручку и стоимость в долларах
             const itemRevenue = calculateRevenue(item, product);
+            const itemCost = product.purchase_price * item.quantity;
 
-            // Корректная точность цены закупки
-            const purchasePrice = parseFloat(product.purchase_price.toFixed(10));
-            const itemCost = purchasePrice * item.quantity;
+            // Переводим в копейки (целые числа)
+            const itemRevenueCents = Math.round(itemRevenue * 100);
+            const itemCostCents = Math.round(itemCost * 100);
+            const itemProfitCents = itemRevenueCents - itemCostCents;
 
-            const itemProfit = itemRevenue - itemCost;
-
-            // Аккуратное накопление с точностью до 10 знаков
-            seller.revenue = parseFloat((seller.revenue + itemRevenue).toFixed(10));
-            seller.profit = parseFloat((seller.profit + itemProfit).toFixed(10));
+            seller.revenueCents += itemRevenueCents;
+            seller.profitCents += itemProfitCents;
 
             seller.products_sold[item.sku] = (seller.products_sold[item.sku] || 0) + item.quantity;
         });
     });
 
-    // Сортировка продавцов по убыванию прибыли
-    sellerStats.sort((a, b) => b.profit - a.profit);
+    // Сортируем продавцов по прибыли в копейках
+    sellerStats.sort((a, b) => b.profitCents - a.profitCents);
 
-    // Присваиваем бонусы и готовим топ товаров
+    // Присваиваем бонусы и формируем топ товаров
     sellerStats.forEach((seller, index) => {
-        seller.bonus = calculateBonus(index, sellerStats.length, seller);
+        // Передаем profit уже в долларах
+        const sellerProfit = seller.profitCents / 100;
+        seller.bonus = calculateBonus(index, sellerStats.length, { profit: sellerProfit });
 
         seller.top_products = Object.entries(seller.products_sold)
             .map(([sku, quantity]) => ({ sku, quantity }))
@@ -92,14 +69,14 @@ function analyzeSalesData(data, options) {
             .slice(0, 10);
     });
 
-    // Финальное округление до 2 знаков для вывода
+    // Финально преобразуем к валютному виду с двумя знаками
     return sellerStats.map(seller => ({
         seller_id: seller.id,
         name: seller.name,
-        revenue: parseFloat(seller.revenue.toFixed(2)),
-        profit: parseFloat(seller.profit.toFixed(2)),
+        revenue: parseFloat((seller.revenueCents / 100).toFixed(2)),
+        profit: parseFloat((seller.profitCents / 100).toFixed(2)),
         sales_count: seller.sales_count,
         top_products: seller.top_products,
-        bonus: parseFloat(seller.bonus.toFixed(2)),
+        bonus: parseFloat(seller.bonus.toFixed(2))
     }));
 }
