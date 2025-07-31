@@ -73,6 +73,7 @@ function analyzeSalesData(data, options) {
 
             // Просто аккуратно складываем числа, без toFixed в промежуточном шаге
             seller.revenue += itemRevenue;
+            seller.revenue =parseFloat(seller.revenue.toFixed(2))
             seller.profit += itemProfit;
 
             seller.products_sold[item.sku] = (seller.products_sold[item.sku] || 0) + item.quantity;
