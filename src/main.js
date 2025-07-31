@@ -41,7 +41,7 @@ function analyzeSalesData(data, options) {
     const sellerStats = data.sellers.map(seller => ({
         id: seller.id,
         name: `${seller.first_name} ${seller.last_name}`,
-        revenue: 0,  // Накопление без toFixed на каждом шаге
+        revenue: 0,  
         profit: 0,
         sales_count: 0,
         products_sold: {}
@@ -65,13 +65,12 @@ function analyzeSalesData(data, options) {
 
             const itemRevenue = calculateRevenue(item, product);
 
-            // Сохраняем точность purchase_price
+
             const purchasePrice = parseFloat(product.purchase_price.toFixed(10));
             const itemCost = purchasePrice * item.quantity;
 
             const itemProfit = itemRevenue - itemCost;
 
-            // Просто аккуратно складываем числа, без toFixed в промежуточном шаге
             seller.revenue += itemRevenue;
             seller.revenue =parseFloat(seller.revenue.toFixed(2))
             seller.profit += itemProfit;
@@ -80,7 +79,6 @@ function analyzeSalesData(data, options) {
         });
     });
 
-    // Сортируем по п  рибыли
     sellerStats.sort((a, b) => b.profit - a.profit);
 
     sellerStats.forEach((seller, index) => {
@@ -92,7 +90,6 @@ function analyzeSalesData(data, options) {
             .slice(0, 10);
     });
 
-    // Финальное округление — именно здесь
     return sellerStats.map(seller => ({
         seller_id: seller.id,
         name: seller.name,
