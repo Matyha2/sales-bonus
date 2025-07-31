@@ -53,8 +53,8 @@ function analyzeSalesData(data, options) {
     const sellerStats = data.sellers.map(seller => ({
         id: seller.id,
         name: `${seller.first_name} ${seller.last_name}`,
-        revenue: 0,   // в копейках
-        profit: 0,    // в копейках
+        revenue: 0,   // в копейках (дробное накопление)
+        profit: 0,    // в копейках (дробное накопление)
         sales_count: 0,
         products_sold: {}
     }));
@@ -78,17 +78,18 @@ function analyzeSalesData(data, options) {
             const product = productIndex[item.sku];
             if (!product) return;
             
-            // Рассчитываем выручку с учетом скидки и переводим в копейки
+            // Рассчитываем выручку с учетом скидки в рублях
             const itemRevenue = calculateRevenue(item, product);
-            const itemRevenueCents = Math.round(itemRevenue * 100);
+            // Переводим в копейки без промежуточного округления
+            const itemRevenueCents = itemRevenue * 100;
             
-            // Рассчитываем себестоимость в копейках
-            const itemCostCents = Math.round(product.purchase_price * item.quantity * 100);
+            // Рассчитываем себестоимость в копейках без округления
+            const itemCostCents = product.purchase_price * item.quantity * 100;
             
             // Прибыль в копейках
             const itemProfitCents = itemRevenueCents - itemCostCents;
             
-            // Суммируем целочисленные значения
+            // Суммируем дробные значения копеек
             seller.revenue += itemRevenueCents;
             seller.profit += itemProfitCents;
             
@@ -100,8 +101,9 @@ function analyzeSalesData(data, options) {
         });
     });
 
-    // Переводим копейки в рубли
+    // Переводим копейки в рубли с финальным округлением
     sellerStats.forEach(seller => {
+        // Округляем до целой копейки перед преобразованием в рубли
         seller.revenue = Math.round(seller.revenue) / 100;
         seller.profit = Math.round(seller.profit) / 100;
     });
