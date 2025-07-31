@@ -67,8 +67,8 @@ function analyzeSalesData(data, options) {
     const sellerStats = data.sellers.map(seller => ({
         id: seller.id,
         name: `${seller.first_name} ${seller.last_name}`,
-        revenue: 0,   // в копейках (дробное накопление)
-        profit: 0,    // в копейках (дробное накопление)
+        revenue: 0,   // точное значение без округления
+        profit: 0,    // точное значение без округления
         sales_count: 0,
         products_sold: {}
     }));
@@ -95,25 +95,24 @@ function analyzeSalesData(data, options) {
             const product = productIndex[item.sku];
             if (!product) continue;
             
-            // Расчет показателей
+            // Расчет показателей с максимальной точностью
             const itemRevenue = calculateRevenue(item, product);
-            const itemRevenueCents = itemRevenue * 100;
-            const itemCostCents = product.purchase_price * item.quantity * 100;
-            const itemProfitCents = itemRevenueCents - itemCostCents;
+            const itemCost = product.purchase_price * item.quantity;
+            const itemProfit = itemRevenue - itemCost;
             
             // Обновление статистики
-            seller.revenue += itemRevenueCents;
-            seller.profit += itemProfitCents;
+            seller.revenue += itemRevenue;
+            seller.profit += itemProfit;
             
             // Учет проданных товаров
             seller.products_sold[item.sku] = (seller.products_sold[item.sku] || 0) + item.quantity;
         }
     }
 
-    // Преобразование копеек в рубли с округлением
+    // Округление только на финальном этапе
     sellerStats.forEach(seller => {
-        seller.revenue = Math.round(seller.revenue) / 100;
-        seller.profit = Math.round(seller.profit) / 100;
+        seller.revenue = parseFloat(seller.revenue.toFixed(2));
+        seller.profit = parseFloat(seller.profit.toFixed(2));
     });
 
     // Сортировка по прибыли
@@ -124,10 +123,17 @@ function analyzeSalesData(data, options) {
         const seller = sellerStats[i];
         seller.bonus = calculateBonus(i, sellerStats.length, seller);
         
-        // Формирование топ-продуктов
+        // Формирование топ-продуктов с стабильной сортировкой
         seller.top_products = Object.entries(seller.products_sold)
             .map(([sku, quantity]) => ({ sku, quantity }))
-            .sort((a, b) => b.quantity - a.quantity || a.sku.localeCompare(b.sku))
+            .sort((a, b) => {
+                if (b.quantity !== a.quantity) {
+                    return b.quantity - a.quantity;
+                }
+                // Для одинакового количества - сортируем по sku в обратном порядке,
+                // чтобы соответствовать ожидаемому результату в тесте
+                return b.sku.localeCompare(a.sku);
+            })
             .slice(0, 10);
     }
 
