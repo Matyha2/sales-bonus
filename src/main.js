@@ -80,7 +80,7 @@ function analyzeSalesData(data, options) {
         });
     });
 
-    // Сортируем по прибыли
+    // Сортируем по п  рибыли
     sellerStats.sort((a, b) => b.profit - a.profit);
 
     sellerStats.forEach((seller, index) => {
