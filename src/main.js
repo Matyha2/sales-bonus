@@ -118,15 +118,14 @@ function analyzeSalesData(data, options) {
         seller.bonus = calculateBonus(i, sellerStats.length, seller);
         
         // Формирование топ-продуктов с стабильной сортировкой
-        seller.top_products = Object.entries(seller.products_sold)
-            .map(([sku, quantity]) => ({ sku, quantity }))
-            .sort((a, b) => {
-                if (b.quantity !== a.quantity) {
-                    return b.quantity - a.quantity;
-                }
-                return b.sku.localeCompare(a.sku);
-            })
-            .slice(0, 10);
+        const topProducts = Object.entries(seller.products_sold)
+    .map(([sku, quantity]) => ({ sku, quantity }))
+    .sort((a, b) => {
+        if (b.quantity !== a.quantity) {
+            return b.quantity - a.quantity;
+        }
+        return a.sku.localeCompare(b.sku);
+    });
     }
 
     // Формирование результата
