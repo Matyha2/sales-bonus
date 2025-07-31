@@ -1,28 +1,20 @@
-/**
- * Функция расчета выручки с учетом скидки
- * Мы не округляем здесь, чтобы не работать с ложной точностью на мелких суммах.
- */
 function calculateSimpleRevenue(purchase, _product) {
     const { discount, sale_price, quantity } = purchase;
     const discountFactor = 1 - discount / 100;
-    return sale_price * quantity * discountFactor;
+    return parseFloat((sale_price * quantity * discountFactor).toFixed(2));
 }
 
-/**
- * Функция расчета бонуса по позиции
- * Бонусы считаем без округления, округляем в итоговом возвращаемом результате.
- */
 function calculateBonusByProfit(index, total, seller) {
     const profit = seller.profit;
-    if (index === 0) return profit * 0.15;
-    if (index === 1 || index === 2) return profit * 0.10;
-    if (index === total - 1) return 0;
-    return profit * 0.05;
+    let bonus;
+    if (index === 0) bonus = profit * 0.15;
+    else if (index === 1 || index === 2) bonus = profit * 0.10;
+    else if (index === total - 1) bonus = 0;
+    else bonus = profit * 0.05;
+    
+    return parseFloat(bonus.toFixed(2));
 }
 
-/**
- * Главная функция анализа данных продаж
- */
 function analyzeSalesData(data, options) {
     if (
         !data ||
@@ -64,38 +56,34 @@ function analyzeSalesData(data, options) {
             if (!product) return;
 
             const itemRevenue = calculateRevenue(item, product);
-            const itemCost = product.purchase_price * item.quantity;
-            const itemProfit = itemRevenue - itemCost;
+            const itemCost = parseFloat((product.purchase_price * item.quantity).toFixed(2));
+            const itemProfit = parseFloat((itemRevenue - itemCost).toFixed(2));
 
-            // Накопление без промежуточного округления
-            seller.revenue += itemRevenue;
-            seller.profit += itemProfit;
+            seller.revenue = parseFloat((seller.revenue + itemRevenue).toFixed(2));
+            seller.profit = parseFloat((seller.profit + itemProfit).toFixed(2));
 
             seller.products_sold[item.sku] = (seller.products_sold[item.sku] || 0) + item.quantity;
         });
     });
 
-    // Сортируем продавцов по прибыли
     sellerStats.sort((a, b) => b.profit - a.profit);
 
-    // Присваиваем бонусы и готовим топ товаров
     sellerStats.forEach((seller, index) => {
         seller.bonus = calculateBonus(index, sellerStats.length, seller);
-
+        
         seller.top_products = Object.entries(seller.products_sold)
             .map(([sku, quantity]) => ({ sku, quantity }))
             .sort((a, b) => b.quantity - a.quantity)
             .slice(0, 10);
     });
 
-    // Финальное округление всех числовых значений — важно использовать parseFloat и toFixed(2)
     return sellerStats.map(seller => ({
         seller_id: seller.id,
         name: seller.name,
-        revenue: parseFloat(seller.revenue.toFixed(2)),
-        profit: parseFloat(seller.profit.toFixed(2)),
+        revenue: seller.revenue,
+        profit: seller.profit,
         sales_count: seller.sales_count,
         top_products: seller.top_products,
-        bonus: parseFloat(seller.bonus.toFixed(2)),
+        bonus: seller.bonus,
     }));
 }
