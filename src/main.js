@@ -1,6 +1,3 @@
-/**
- * Функция для расчета выручки с учетом скидки
- */
 function calculateSimpleRevenue(purchase, _product) {
     const { discount, sale_price, quantity } = purchase;
     const discountAmount = 1 - (discount / 100);
@@ -84,13 +81,13 @@ function analyzeSalesData(data, options) {
             // Рассчитываем выручку
             const itemRevenue = calculateRevenue(item, product);
             
-            // Рассчитываем себестоимость
+            // Рассчитываемself себестоимость
             const itemCost = product.purchase_price * item.quantity;
             
             // Рассчитываем прибыль
             const itemProfit = itemRevenue - itemCost;
 
-            // Обновляем статистику продавца БЕЗ промежуточного округления
+            // Обновляем статистику продавца
             seller.revenue += itemRevenue;
             seller.profit += itemProfit;
 
@@ -117,14 +114,14 @@ function analyzeSalesData(data, options) {
             .slice(0, 10);
     });
 
-    // 8. Формируем итоговый результат с округлением ТОЛЬКО в конце
+    // 8. Формируем итоговый результат с правильным округлением
     return sellerStats.map(seller => ({
         seller_id: seller.id,
         name: seller.name,
-        revenue: +seller.revenue.toFixed(2),
-        profit: +seller.profit.toFixed(2),
+        revenue: parseFloat(seller.revenue.toFixed(2)),
+        profit: parseFloat(seller.profit.toFixed(2)),
         sales_count: seller.sales_count,
         top_products: seller.top_products,
-        bonus: +seller.bonus.toFixed(2)
+        bonus: parseFloat(seller.bonus.toFixed(2))
     }));
 }
