@@ -14,7 +14,6 @@ function calculateSimpleRevenue(purchase, _product) {
  */
 function calculateBonusByProfit(index, total, seller) {
     const profit = seller.profit;
-
     if (index === 0) return profit * 0.15;
     if (index === 1 || index === 2) return profit * 0.10;
     if (index === total - 1) return 0;
@@ -25,10 +24,12 @@ function calculateBonusByProfit(index, total, seller) {
  * Главная функция анализа данных продаж
  */
 function analyzeSalesData(data, options) {
-    if (!data
-        || !Array.isArray(data.sellers) || data.sellers.length === 0
-        || !Array.isArray(data.products) || data.products.length === 0
-        || !Array.isArray(data.purchase_records) || data.purchase_records.length === 0) {
+    if (
+        !data ||
+        !Array.isArray(data.sellers) || data.sellers.length === 0 ||
+        !Array.isArray(data.products) || data.products.length === 0 ||
+        !Array.isArray(data.purchase_records) || data.purchase_records.length === 0
+    ) {
         throw new Error('Некорректные входные данные');
     }
 
@@ -87,7 +88,7 @@ function analyzeSalesData(data, options) {
             .slice(0, 10);
     });
 
-    // Финальное округление всех числовых значений — важно использовать parseFloat и toFixed для точности
+    // Финальное округление всех числовых значений — важно использовать parseFloat и toFixed(2)
     return sellerStats.map(seller => ({
         seller_id: seller.id,
         name: seller.name,
